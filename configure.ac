@@ -231,6 +231,7 @@ AC_CHECK_FUNCS([\
 	tcgetattr tcsetattr \
 	ftruncate \
 	strverscmp \
+	str_verscmp \
 	strncasecmp \
 	realpath
 ])
