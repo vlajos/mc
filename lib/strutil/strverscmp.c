@@ -55,9 +55,6 @@ str_verscmp (const char *s1, const char *s2)
 #ifdef HAVE_STRVERSCMP
     return strverscmp (s1, s2);
 
-#elif defined(HAVE_STR_VERSCMP)
-    return str_verscmp (s1, s2);
-
 #else /* HAVE_STRVERSCMP */
     unsigned char *p1 = (unsigned char *) s1;
     unsigned char *p2 = (unsigned char *) s2;
