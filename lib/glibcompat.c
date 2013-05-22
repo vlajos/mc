@@ -93,6 +93,6 @@ g_strcmp0 (const char *str1, const char *str2)
         return str1 != str2;
     return strcmp (str1, str2);
 }
-#endif /* ! GLIB_CHECK_VERSION (2, 13, 0) */
+#endif /* ! GLIB_CHECK_VERSION (2, 16, 0) */
 
 /* --------------------------------------------------------------------------------------------- */
