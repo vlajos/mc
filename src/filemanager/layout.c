@@ -2,13 +2,13 @@
    Panel layout module for the Midnight Commander
 
    Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-   2006, 2007, 2009, 2011, 2012
+   2006, 2007, 2009, 2011, 2012, 2013
    The Free Software Foundation, Inc.
 
    Written by:
    Janne Kukonlehto, 1995
    Miguel de Icaza, 1995
-   Andrew Borodin <aborodin@vmail.ru>, 2011, 2012
+   Andrew Borodin <aborodin@vmail.ru>, 2011, 2012, 2013
 
    This file is part of the Midnight Commander.
 
@@ -863,21 +863,27 @@ set_hintbar (const char *str)
 /* --------------------------------------------------------------------------------------------- */
 
 void
-rotate_dash (void)
+rotate_dash (gboolean show)
 {
     static const char rotating_dash[] = "|/-\\";
     static size_t pos = 0;
+    Widget *w = WIDGET (midnight_dlg);
 
     if (!nice_rotating_dash || (ok_to_refresh <= 0))
         return;
 
-    if (pos >= sizeof (rotating_dash) - 1)
-        pos = 0;
-    tty_gotoyx (0, COLS - 1);
+    widget_move (w, (menubar_visible != 0) ? 1 : 0, w->cols - 1);
     tty_setcolor (NORMAL_COLOR);
-    tty_print_char (rotating_dash[pos]);
+
+    if (!show)
+        tty_print_alt_char (ACS_URCORNER, FALSE);
+    else
+    {
+        tty_print_char (rotating_dash[pos]);
+        pos = (pos + 1) % sizeof (rotating_dash);
+    }
+
     mc_refresh ();
-    pos++;
 }
 
 /* --------------------------------------------------------------------------------------------- */

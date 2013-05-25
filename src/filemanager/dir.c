@@ -2,7 +2,7 @@
    Directory routines
 
    Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-   2006, 2007, 2011
+   2006, 2007, 2011, 2013
    The Free Software Foundation, Inc.
 
    This file is part of the Midnight Commander.
@@ -599,7 +599,7 @@ do_load_dir (const vfs_path_t * vpath, dir_list * list, sortfn * sort, gboolean 
         next_free++;
 
         if ((next_free & 31) == 0)
-            rotate_dash ();
+            rotate_dash (TRUE);
     }
 
     if (next_free != 0)
@@ -608,6 +608,7 @@ do_load_dir (const vfs_path_t * vpath, dir_list * list, sortfn * sort, gboolean 
   ret:
     mc_closedir (dirp);
     tree_store_end_check ();
+    rotate_dash (FALSE);
     return next_free;
 }
 
@@ -737,8 +738,8 @@ do_reload_dir (const vfs_path_t * vpath, dir_list * list, sortfn * sort, int cou
         list->list[next_free].sort_key = NULL;
         list->list[next_free].second_sort_key = NULL;
         next_free++;
-        if (!(next_free % 16))
-            rotate_dash ();
+        if ((next_free % 16) == 0)
+            rotate_dash (TRUE);
     }
     mc_closedir (dirp);
     tree_store_end_check ();
@@ -748,6 +749,8 @@ do_reload_dir (const vfs_path_t * vpath, dir_list * list, sortfn * sort, int cou
         do_sort (list, sort, next_free - 1, lc_reverse, lc_case_sensitive, exec_ff);
     }
     clean_dir (&dir_copy, count);
+    rotate_dash (FALSE);
+
     return next_free;
 }
 
