@@ -1187,8 +1187,8 @@ find_ignore_dir_search (const char *dir)
 static void
 find_rotate_dash (const WDialog * h, gboolean show)
 {
-    static const char rotating_dash[] = "|/-\\";
-    static unsigned int pos = 0;
+    static const char rotating_dash[] = { '|', '/', '-', '\\' };
+    static size_t pos = 0;
 
     if (verbose)
     {
