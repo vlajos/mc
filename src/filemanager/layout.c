@@ -865,7 +865,7 @@ set_hintbar (const char *str)
 void
 rotate_dash (gboolean show)
 {
-    static const char rotating_dash[] = "|/-\\";
+    static const char rotating_dash[] = { '|', '/', '-', '\\' };
     static size_t pos = 0;
     Widget *w = WIDGET (midnight_dlg);
 
