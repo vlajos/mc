@@ -37,11 +37,6 @@
 
 /*** file scope type declarations ****************************************************************/
 
-typedef struct
-{
-    int handle;
-} smbfs_file_handler_data_t;
-
 /*** file scope variables ************************************************************************/
 
 /*** file scope functions ************************************************************************/
@@ -60,30 +55,24 @@ typedef struct
  * @return TRUE if connection was created successfully, FALSE otherwise
  */
 
-void *
-smbfs_file_open (const vfs_path_t * vpath, int flags, mode_t mode, GError ** error)
+gboolean
+smbfs_file_open (vfs_file_handler_t * file_handler, const vfs_path_t * vpath, int flags,
+                 mode_t mode, GError ** error)
 {
-    smbfs_file_handler_data_t *file_handler_data = NULL;
     const vfs_path_element_t *path_element;
     char *smb_url;
-    int handle;
 
     path_element = vfs_path_get_by_index (vpath, -1);
     smb_url = smbfs_make_url (path_element, TRUE);
 
     errno = 0;
-    handle = smbc_open (smb_url, flags, mode);
+    file_handler->handle = smbc_open (smb_url, flags, mode);
     g_free (smb_url);
 
-    if (handle >= 0)
-    {
-        file_handler_data = g_new0 (smbfs_file_handler_data_t, 1);
-        file_handler_data->handle = handle;
-    }
-    else
+    if (file_handler->handle < 0)
         g_set_error (error, MC_ERROR, errno, "%s", smbfs_strerror (errno));
 
-    return (void *) file_handler_data;
+    return (file_handler->handle >= 0);
 }
 
 /* --------------------------------------------------------------------------------------------- */
@@ -102,18 +91,17 @@ ssize_t
 smbfs_file_read (vfs_file_handler_t * file_handler, char *buffer, size_t count, GError ** error)
 {
     ssize_t rc;
-    smbfs_file_handler_data_t *file_handler_data;
 
-    if (file_handler == NULL || file_handler->data == NULL)
+    if (file_handler == NULL)
     {
         g_set_error (error, MC_ERROR, -1,
                      _("smbfs: No file handler data present for reading file"));
         return -1;
     }
 
-    file_handler_data = (smbfs_file_handler_data_t *) file_handler->data;
     errno = 0;
-    rc = smbc_read (file_handler_data->handle, buffer, count);
+    smbfs_file_lseek (file_handler, file_handler->pos, SEEK_SET, NULL);
+    rc = smbc_read (file_handler->handle, buffer, count);
     if (rc < 0)
         g_set_error (error, MC_ERROR, errno, "%s", smbfs_strerror (errno));
     else
@@ -136,23 +124,19 @@ smbfs_file_read (vfs_file_handler_t * file_handler, char *buffer, size_t count, 
 int
 smbfs_file_close (vfs_file_handler_t * file_handler, GError ** error)
 {
-    smbfs_file_handler_data_t *file_handler_data;
     int rc;
 
-    if (file_handler == NULL || file_handler->data == NULL)
+    if (file_handler == NULL)
     {
         g_set_error (error, MC_ERROR, -1,
                      _("smbfs: No file handler data present for closing file"));
         return -1;
     }
 
-    file_handler_data = (smbfs_file_handler_data_t *) file_handler->data;
     errno = 0;
-    rc = smbc_close (file_handler_data->handle);
+    rc = smbc_close (file_handler->handle);
     if (rc < 0)
         g_set_error (error, MC_ERROR, errno, "%s", smbfs_strerror (errno));
-    else
-        g_free (file_handler_data);
 
     return rc;
 }
@@ -172,16 +156,14 @@ int
 smbfs_file_stat (vfs_file_handler_t * file_handler, struct stat *buf, GError ** error)
 {
     int rc;
-    smbfs_file_handler_data_t *file_handler_data;
 
-    if (file_handler == NULL || file_handler->data == NULL)
+    if (file_handler == NULL)
     {
         g_set_error (error, MC_ERROR, -1, _("smbfs: No file handler data present for fstat file"));
         return -1;
     }
-    file_handler_data = (smbfs_file_handler_data_t *) file_handler->data;
     errno = 0;
-    rc = smbc_fstat (file_handler_data->handle, buf);
+    rc = smbc_fstat (file_handler->handle, buf);
 
     if (rc < 0)
         g_set_error (error, MC_ERROR, errno, "%s", smbfs_strerror (errno));
@@ -206,16 +188,14 @@ smbfs_file_write (vfs_file_handler_t * file_handler, const char *buffer, size_t 
                   GError ** error)
 {
     ssize_t rc;
-    smbfs_file_handler_data_t *file_handler_data;
 
-    if (file_handler == NULL || file_handler->data == NULL)
+    if (file_handler == NULL)
     {
         g_set_error (error, MC_ERROR, -1, _("smbfs: No file handler data present for fstat file"));
         return -1;
     }
-    file_handler_data = (smbfs_file_handler_data_t *) file_handler->data;
     errno = 0;
-    rc = smbc_write (file_handler_data->handle, buffer, count);
+    rc = smbc_write (file_handler->handle, buffer, count);
 
     if (rc < 0)
         g_set_error (error, MC_ERROR, errno, "%s", smbfs_strerror (errno));
@@ -238,16 +218,14 @@ off_t
 smbfs_file_lseek (vfs_file_handler_t * file_handler, off_t offset, int whence, GError ** error)
 {
     off_t rc;
-    smbfs_file_handler_data_t *file_handler_data;
 
-    if (file_handler == NULL || file_handler->data == NULL)
+    if (file_handler == NULL)
     {
         g_set_error (error, MC_ERROR, -1, _("smbfs: No file handler data present for fstat file"));
         return -1;
     }
-    file_handler_data = (smbfs_file_handler_data_t *) file_handler->data;
     errno = 0;
-    rc = smbc_lseek (file_handler_data->handle, offset, whence);
+    rc = smbc_lseek (file_handler->handle, offset, whence);
 
     if (rc == -1)
         g_set_error (error, MC_ERROR, errno, "%s", smbfs_strerror (errno));

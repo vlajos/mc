@@ -59,7 +59,8 @@ int smbfs_stat (const vfs_path_t * vpath, struct stat *buf, GError ** error);
 
 void smbfs_assign_value_if_not_null (char *value, char **assignee);
 
-void *smbfs_file_open (const vfs_path_t * vpath, int flags, mode_t mode, GError ** error);
+gboolean smbfs_file_open (vfs_file_handler_t * file_handler, const vfs_path_t * vpath, int flags,
+                          mode_t mode, GError ** error);
 int smbfs_file_stat (vfs_file_handler_t * data, struct stat *buf, GError ** error);
 off_t smbfs_file_lseek (vfs_file_handler_t * file_handler, off_t offset, int whence,
                         GError ** error);

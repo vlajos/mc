@@ -313,9 +313,7 @@ smbfs_cb_open (const vfs_path_t * vpath, int flags, mode_t mode)
     if (file_handler == NULL)
         return NULL;
 
-    file_handler->data = smbfs_file_open (vpath, flags, mode, &error);
-
-    if (file_handler->data == NULL)
+    if (!smbfs_file_open (file_handler, vpath, flags, mode, &error))
     {
         vfs_show_gerror (&error);
         g_free (file_handler);
