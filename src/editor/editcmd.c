@@ -1121,7 +1121,7 @@ pipe_mail (WEdit * edit, char *to, char *subject, char *cc)
 static gboolean
 edit_find_word_start (WEdit * edit, off_t * word_start, gsize * word_len)
 {
-    int c, last;
+    int c;
     off_t i;
 
     /* return if at begin of file */
@@ -1134,14 +1134,12 @@ edit_find_word_start (WEdit * edit, off_t * word_start, gsize * word_len)
         return FALSE;
 
     /* search start of word to be completed */
-    for (i = 2;; i++)
+    for (i = 1;; i++)
     {
-        /* return if at begin of file */
-        if (edit->curs1 < i)
-            return FALSE;
+        int last;
 
         last = c;
-        c = edit_get_byte (edit, edit->curs1 - i);
+        c = edit_get_byte (edit, edit->curs1 - i - 1);
 
         if (is_break_char (c))
         {
@@ -1149,12 +1147,13 @@ edit_find_word_start (WEdit * edit, off_t * word_start, gsize * word_len)
             if (isdigit (last))
                 return FALSE;
 
-            *word_start = edit->curs1 - (i - 1);        /* start found */
-            *word_len = (gsize) (i - 1);
             break;
         }
     }
+
     /* success */
+    *word_start = edit->curs1 - i;      /* start found */
+    *word_len = (gsize) i;
     return TRUE;
 }
 
